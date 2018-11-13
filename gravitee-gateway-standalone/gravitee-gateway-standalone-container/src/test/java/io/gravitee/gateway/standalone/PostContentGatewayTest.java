@@ -148,4 +148,29 @@ public class PostContentGatewayTest extends AbstractGatewayTest {
             assertTrue(false);
         }
     }
+
+    @Test
+    public void call_post_no_content_with_chunked_encoding_transfer() throws Exception {
+        String testCase = "case3";
+
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(testCase + "/request_content.json");
+        Request request = Request.Get("http://localhost:8082/test/my_team?mode=chunk&case=" +  testCase)
+                .addHeader(HttpHeaders.TRANSFER_ENCODING, HttpHeadersValues.TRANSFER_ENCODING_CHUNKED);
+
+        try {
+            Response response = request.execute();
+
+            HttpResponse returnResponse = response.returnResponse();
+            assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, returnResponse.getStatusLine().getStatusCode());
+
+            // Set chunk mode in request but returns raw because of the size of the content
+            assertEquals(null, returnResponse.getFirstHeader(HttpHeaders.TRANSFER_ENCODING));
+
+            String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+            assertEquals(0, responseContent.length());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
 }
